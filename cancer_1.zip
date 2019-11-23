@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Kaggle: Your Home for Data Science</title>
+    <meta charset="utf-8" />
+    <meta name="robots" content="index, follow" />
+    <meta name="description" content="Download Open Datasets on 1000s of Projects &#x2B; Share Projects on One Platform. Explore Popular Topics Like Government, Sports, Medicine, Fintech, Food, More. Flexible Data Ingestion." />
+    <meta name="turbolinks-cache-control" content="no-cache" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0">
+    <meta name="theme-color" content="#008ABC" />
+    <script nonce="AAYrgSxvVJ/PPn668M3Rtg==" type="text/javascript">
+        window["initialPageLoadStartTime"] = new Date().getTime();
+    </script>
+    <link rel="preconnect" href="https://www.google-analytics.com" crossorigin="anonymous" /><link rel="preconnect" href="https://stats.g.doubleclick.net" /><link rel="preconnect" href="https://js.intercomcdn.com" /><link rel="preconnect" href="https://storage.googleapis.com" /><link rel="preconnect" href="https://apis.google.com" /><link rel="preload" href="/static/assets/fontawesome-webfont.woff2" as="font" crossorigin="anonymous" /><link rel="preload" href="/static/fonts/atlas-grotesk/atlasgrotesk-regular-web.woff2" as="font" crossorigin="anonymous" /><link rel="preload" href="/static/fonts/atlas-grotesk/atlasgrotesk-medium-web.woff2" as="font" crossorigin="anonymous" />
+    <link href="/static/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <link rel="manifest" href="/static/json/manifest.json">
+    <link href="//fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic" rel='stylesheet' type='text/css'>
+    <link href="https://fonts.googleapis.com/icon?family=Google+Material+Icons" rel="stylesheet" type='text/css' />
+        <link rel="stylesheet" type="text/css" href="/static/assets/vendor.css?v=7c7d51aa6d5d" />
+        <link rel="stylesheet" type="text/css" href="/static/assets/app.css?v=f29dcdd3a396" />
+    
+    
+ 
+        <script nonce="AAYrgSxvVJ/PPn668M3Rtg==">
+        try{(function(a,s,y,n,c,h,i,d,e){d=s.createElement("style");
+        d.appendChild(s.createTextNode(""));s.head.appendChild(d);d=d.sheet;
+        y=y.map(x => d.insertRule(x + "{ opacity: 0 !important }"));
+        h.start=1*new Date;h.end=i=function(){y.forEach(x => x<d.cssRules.length ? d.deleteRule(x) : {})};
+        (a[n]=a[n]||[]).hide=h;setTimeout(function(){i();h.end=null},c);h.timeout=c;
+        })(window,document,['.site-header-react__nav'],'dataLayer',2000,{'GTM-52LNT9S':true});}catch{}
+    </script>
+    <script nonce="AAYrgSxvVJ/PPn668M3Rtg==">
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'UA-12629138-1', {
+            'optimize_id': 'GTM-52LNT9S',
+            'displayFeaturesTask': null,
+            'send_page_view': false
+        });
+    </script>
+    <script nonce="AAYrgSxvVJ/PPn668M3Rtg==" async src="https://www.googletagmanager.com/gtag/js?id=UA-12629138-1"></script>
+
+    
+    
+
+    
+    
+
+    
+    
+    
+<script nonce="AAYrgSxvVJ/PPn668M3Rtg==" type="text/javascript">
+    var Kaggle = Kaggle || {};
+
+    Kaggle.Current = {
+        antiForgeryToken: 'CfDJ8LdUzqlsSWBPr4Ce3rb9VL8WLSZkr656he1si7Ae_90aaXGPjVfJmlCh13tlSipOBILEzAUR7TO49WOFCLPZJC2kFM_c5jHxM3uOvgu5lY0xcB9za5J6WcyQoz3QdY3qhyPkThvCiD07Wr_A9IcMO70',
+        isAnonymous: true,
+        analyticsToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NzQ1MjM0MDcsIlVzZXJJZCI6MH0.zSJCpGL3wJNI9jPV7PARBzRPJVgfOSS2BTaNsp2iBAk',
+        analyticsTokenExpiry: 15,
+        internetKernelsEnabled: false,
+        
+        
+        
+        
+        
+        
+        mdeImageUploader: true,
+        
+        
+        
+    }
+        Kaggle.Current.log = function(){};
+        Kaggle.Current.warn = function(){};
+
+    var decodeUserDisplayName = function () {
+        var escapedUserDisplayName = Kaggle.Current.userDisplayNameEscaped || "";
+        try {
+            var textVersion = new DOMParser().parseFromString(escapedUserDisplayName, "text/html").documentElement.textContent;
+            if (textVersion) {
+                return textVersion;
+            }
+        } catch(ex) {}
+        return escapedUserDisplayName;
+    }
+    Kaggle.Current.userDisplayName = decodeUserDisplayName();
+</script>
+
+    
+
+<script nonce="AAYrgSxvVJ/PPn668M3Rtg==" type="text/javascript">
+    var Kaggle = Kaggle || {};
+    Kaggle.PageMessages = [];
+</script>
+
+        <script nonce="AAYrgSxvVJ/PPn668M3Rtg==" type="text/javascript">
+/* <![CDATA[ */
+goog_snippet_vars = function() {
+    var w = window;
+    w.google_conversion_id = 955616553;
+    w.google_conversion_label = "QSjvCKDksHMQqZrWxwM";
+    w.google_conversion_value = 0.00;
+    w.google_conversion_currency = "USD";
+    w.google_remarketing_only = false;
+    w.google_conversion_language = "en";
+    w.google_conversion_format = "3";
+    w.google_conversion_color = "ffffff";
+}
+// DO NOT CHANGE THE CODE BELOW.
+goog_report_conversion = function(url) {
+    goog_snippet_vars();
+    window.google_conversion_format = "3";
+    var opt = new Object();
+    opt.onload_callback = function() {
+        if (typeof(url) != 'undefined') {
+            window.location = url;
+        }
+    }
+    var conv_handler = window['google_trackConversion'];
+    if (typeof(conv_handler) == 'function') {
+        conv_handler(opt);
+    }
+}
+/* ]]> */
+    </script>
+    <script nonce="AAYrgSxvVJ/PPn668M3Rtg==" type="text/javascript"
+            src="//www.googleadservices.com/pagead/conversion_async.js">
+    </script>
+
+
+
+        <script nonce="AAYrgSxvVJ/PPn668M3Rtg==">window['useKaggleAnalytics'] = true;</script>
+
+    <script nonce="AAYrgSxvVJ/PPn668M3Rtg==" src="/static/assets/vendor.js?v=73051d69ff9e" data-turbolinks-track="reload"></script>
+    <script nonce="AAYrgSxvVJ/PPn668M3Rtg==" src="/static/assets/app.js?v=09263b71b7c1" data-turbolinks-track="reload"></script>
+        <script nonce="AAYrgSxvVJ/PPn668M3Rtg==">
+            (function() {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register("/static/assets/service-worker.js").then(function(reg) {
+                        reg.onupdatefound = function() {
+                            var installingWorker = reg.installing;
+                            installingWorker.onstatechange = function() {
+                                switch (installingWorker.state) {
+                                case 'installed':
+                                    if (navigator.serviceWorker.controller) {
+                                        console.log('New or updated content is available.');
+                                    } else {
+                                        console.log('Content is now available offline!');
+                                    }
+                                    break;
+                                case 'redundant':
+                                    console.error('The installing service worker became redundant.');
+                                    break;
+                                }
+                            };
+                        };
+                    }).catch(function(e) {
+                      console.error('Error during service worker registration:', e);
+                    });
+                }
+            })();
+        </script>
+    <script nonce="AAYrgSxvVJ/PPn668M3Rtg==" id="gapi-loader">
+        var clientLoaded = false;
+
+        function handleClientLoad() {
+            if (clientLoaded) {
+                return;
+            }
+            clientLoaded = true;
+            try {
+                gapi.load('client:auth2');
+            } catch (e) {
+            }
+        }
+
+        var clientLoader = document.createElement('script');
+        clientLoader.type = 'text/javascript';
+        clientLoader.src = 'https://apis.google.com/js/api.js';
+        clientLoader.defer = true;
+        clientLoader.async = true;
+
+        clientLoader.addEventListener('load', function() {
+            handleClientLoad();
+        });
+
+        clientLoader.addEventListener('readystatechange', function() {
+            if (document.readyState === 'complete') {
+                handleClientLoad();
+            }
+        });
+
+        var parentScript = document.getElementById("gapi-loader");
+        parentScript.parentNode.insertBefore(clientLoader, parentScript.nextSibling);
+    </script>
+        <script nonce="AAYrgSxvVJ/PPn668M3Rtg==" defer src="https://cdn.jsdelivr.net/npm/stackdriver-errors-js@0.7.0/dist/stackdriver-errors-concat.min.js"></script>
+        <script nonce="AAYrgSxvVJ/PPn668M3Rtg==" type="text/javascript">
+            window.addEventListener('DOMContentLoaded', function () {
+                var errorHandler = new StackdriverErrorReporter();
+                errorHandler.start({
+                    key: 'AIzaSyDANGXFHtSIVc51MIdGwg4mQFgm3oNrKoo',
+                    projectId: 'kaggle-161607',
+                    service: 'web-fe',
+                    version: '21b663330a98052735f0e2314871edb780c34130',
+                    context: { user: '0' }
+                });
+            });
+        </script>
+</head>
+<body data-turbolinks="false">
+    <main>
+        
+
+
+
+
+
+
+    <div class="site-layout">
+
+        <div class="site-layout__main-content">
+            
+
+<div data-component-name="LoginRegisterPage" style="display: flex; flex-direction: column; flex: 1 0 auto;"></div><script nonce="AAYrgSxvVJ/PPn668M3Rtg==">var Kaggle=window.Kaggle||{};Kaggle.State=Kaggle.State||[];Kaggle.State.push({});performance && performance.mark && performance.mark("LoginRegisterPage.componentCouldBootstrap");</script>
+
+        </div>
+
+    </div>
+
+
+
+
+    </main>
+</body>
+</html>
