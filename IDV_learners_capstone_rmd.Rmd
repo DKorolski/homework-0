@@ -1,0 +1,295 @@
+---
+title: "HarvardX: PH125.9x Data Science  \n   IDV Learners Capstone Project"
+subtitle: "Cancer treatment survival analisis and prediction project"
+author: "Denis Korolskii"
+date: "November 23, 2019"
+output: pdf_document
+---
+
+
+# Overview  
+
+  IDV Learners Capstone Project of the HarvardX: PH125.9x Data Science: Capstone course. Current task is to create recommendation system using a choosen dataset. Also, current task is to train a machine learning algorithm using the inputs in one subset to predict survival time in the test set. 
+
+
+# Introduction
+
+  For this project we will focus on create a hypothesis testing and training prediction model system using  Cameron and Pauling investigation  dataset "Intravenous vitamin C in the supportive care of cancer patients: a review and rational approach", https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5927785/. Literature demonstrates that cancer patients experience vitamin C deficiency correlated with reduced oral intake, inflammation, infection, disease processes, and treatments such as radiation, chemotherapy, and surgery. Reaserch of the statistical significance of a possible difference in the effect of the Ascorbate treatment, as well as training the machine learning algorithm on the basis of the data obtained are the goals of this project.
+
+
+##Executive summary
+
+
+  The evaluation of algorithm performance is the Root Mean Square Error. RMSE is a frequently used measure of the differences between values (sample or population values) predicted by a model or an estimator and the values observed. The RMSE represents the square root of the second sample moment of the differences between predicted values and observed values or the quadratic mean of these differences. These deviations are called residuals when the calculations are performed over the data sample that was used for estimation and are called errors (or prediction errors) when computed out-of-sample. The RMSE serves to aggregate the magnitudes of the errors in predictions for various times into a single measure of predictive power. RMSE is a measure of accuracy, to compare forecasting errors of different models for a particular dataset and not between datasets, as it is scale-dependent.
+  
+  The function that computes the RMSE for vectors of ratings and their corresponding predictors will be the following:
+$$ RMSE = \sqrt{\frac{1}{N}\displaystyle\sum_{u,i} (\hat{y}_{u,i}-y_{u,i})^{2}} $$
+
+```{r RMSE_function1, echo = FALSE}
+
+RMSE <- function(predicted_ratings, true_ratings){
+sqrt(mean((predicted_ratings - true_ratings)^2))
+}
+
+```
+
+
+## Dataset
+
+The cancer_1 dataset is uploaded at GitHub repository
+
+https://github.com/DKorolski/homework-0/raw/8d656ba0abb62a8a48e611f8d5a2cebe4250bc97/cancer_1.xlsx
+
+
+```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
+
+#Loading libraries
+if(!require(tidyverse)) install.packages ("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(caret)) install.packages ("caret", repos = "http://cran.us.r-project.org")
+if(!require(data.table)) install.packages ("data.table", repos = "http://cran.us.r-project.org")
+if(!require(car)) install.packages("car", repos = "http://cran.us.r-project.org")
+if(!require(ggplot2)) install.packages("ggplot2", repos = "http://cran.us.r-project.org")
+if(!require(readxl)) install.packages("readxl", repos = "http://cran.us.r-project.org") 
+#Loading dataset
+z <- read_excel (path = "cancer_1.xlsx", sheet = "cancer")
+
+```
+
+
+
+Metadata
+Reference:   Cameron, E. and Pauling, L. (1978) Supplemental ascorbate in the supportive treatment of cancer:  re-evaluation of prolongation of survival times in terminal human cancer.  Proceedings of the National Academy of Science USA.
+Also found in:  Manly, B.F.J. (1986) Multivariate Statistical Methods:  A Primer, New York:  Chapman & Hall, 11.
+Also found in:  Hand, D.J., et al. (1994) A Handbook of Small Data Sets, London:  Chapman & Hall, 255.
+Description:   Patients with advanced cancers of the stomach, bronchus, colon, ovary or breast were treated with ascorbate.  The purpose of the study was to determine if the survival times differ with respect to the organ affected by the cancer.
+Number of cases:   64
+Variable Names:
+Survival:   Survival time (in days)
+Organ:   Organ affected by the cancer
+relation
+'Survival' numeric
+'Organ'  {"Breast","Bronchus","Colon","Ovary","Stomach"}
+
+# Methods and Analysis
+## Data Analysis
+
+To get familiar with the dataset, we find the first rows of "cancer_1" subset as below.
+The subset contain the two variables “Survival”, “Organ”. Each row represent a single case.
+
+Preprocessing
+
+Testing for any N/A
+```{r testing for N/A, echo = TRUE}
+colSums(is.na(z))
+  
+```
+
+
+Exploring dataset
+
+```{r head(edx), echo = TRUE}
+str(z)
+  
+```
+
+```{r summary of dataset, echo = TRUE}
+summary(z)
+  
+```
+
+Converting characters to factor
+```{r, echo=TRUE, fig.width=12}
+z$Organ <- factor(z$Organ)
+  
+```
+
+```{r amount of data in the set, echo = TRUE}
+table(z$Organ)
+
+table(z)
+  
+```
+Dataset is small. Data is set of independent medical cases
+H0_hypothesis - survival time is equally dependent on organ (traditional)
+H1_hypothesis - survival time is not equally dependent on organ
+
+Plotting dataset distibution
+
+The plotted boxplot shows the presence of extremely high survival rates in each group
+Since these outliers are uniformly distributed across all groups, it is more likely to conclude that these are not sample artifacts, but a strong sign of an asymmetric distribution. Their exclusion will lead to a distortion of the initial nature of the distribution, so it was decided to leave all the data in the array for further analysis.
+
+```{r , echo = TRUE}
+#check for normal distribution
+ggplot(data = z, aes(x = Organ, y = Survival)) +
+  geom_boxplot() + 
+  labs(x = "Diagnosis", y = "Survival time in days") +
+  theme(axis.text.x = element_text(angle = 15, vjust = 0.9, hjust = 0.5))
+
+ggplot(aes(sample = Survival), data = z) +
+  geom_qq() + geom_qq_line() +
+  scale_x_continuous(labels = NULL, name = "Theoretic quantiles") +
+  scale_y_continuous(labels = NULL, name = "Experimental quantiles") +
+  facet_wrap(~Organ, ncol = 5)
+
+  
+```
+
+Performing t-test
+```{r , echo = TRUE}
+#Performing t-test comparing selected organ (breast) with others
+Stomach <- (z$Survival[z$Organ == "Stomach"])
+Breast <- (z$Survival[z$Organ == "Breast"])
+Bronchus <- (z$Survival[z$Organ == "Bronchus"])
+Colon <- (z$Survival[z$Organ == "Colon"])
+Ovary <- (z$Survival[z$Organ == "Ovary"])
+t_St <- t.test(Breast, Stomach)
+t_Br <- t.test(Breast, Bronchus)
+t_C <- t.test(Breast, Colon)
+t_O <- t.test(Breast, Ovary)
+p_vals <- c(t_St$p.value, t_Br$p.value, t_C$p.value, t_O$p.value)
+#Performing Holm adjustment 
+p_holm <- p.adjust(p_vals, method = 'holm')
+sum(p_holm <= 0.05)
+p_holm
+
+
+```
+H1_hypothesis is correct for Breast-Stomach, Breast-Bronchus pairs
+
+```{r plotting results, echo = TRUE}
+#plotting results
+ggplot(z, aes(x = Organ, y = Survival, colour = Organ)) + geom_point(size = 2) + scale_colour_brewer( palette = 'Set1') + facet_wrap(~Organ, nrow = 1)+theme(axis.text.x = element_blank())
+  
+```
+
+
+
+## Regression model
+
+Preparing train and test datasets for small dataset with normal distribution
+
+
+```{r overall mean rating, echo = TRUE}
+# Set seed
+set.seed (42)
+#making permutations 
+n_obs <- nrow(z)
+permuted_rows<-sample(n_obs)
+
+z_shuffled <- z[permuted_rows, ]
+
+# Identify row to split on: split
+split <- round(n_obs * 0.6)
+
+# Create train
+train <- z_shuffled[1:split, ]
+str(train)
+# Create test
+test <- z_shuffled[(split+1):n_obs, ]
+str(test)
+
+  
+```
+
+1. Fit lm model on train: model
+
+```{r model1, echo = TRUE}
+model <- lm (Survival ~ Organ , train)
+head (model)
+# Predict on test: p
+p <- predict(model,test)
+length(p)
+# Compute errors: error
+error <- p - test[["Survival"]]
+length(p)
+nrow(test)
+length(error)
+# Calculate RMSE
+sqrt(mean(error^2))
+
+  
+```
+
+
+2.Cross-Validation. This method is a good choice when we have a minimum amount of data and we get sufficiently big difference in quality or different optimal parameters between folds. As a general rule, we choose k=5 or k=10, as these values have been shown empirically to yield test error estimates that suffer neither from excessively high bias nor high variance.
+
+```{r predicted ratings_bi, echo = TRUE}
+#CROSS-VALIDATION
+# Fit lm model using 10-fold CV: model
+model <- train(
+  Survival~Organ , 
+  z,
+  method = "lm",
+  trControl = trainControl(            #train-control func
+    method = "cv", 
+    number = 10, #10-fold cross validation
+    verboseIter = TRUE
+  )
+)
+model
+# Fit lm model using 5 x 5-fold CV: model
+model <- train(
+  Survival~Organ, 
+  z,
+  method = "lm",
+  trControl = trainControl(
+    method = "repeatedcv", 
+    number = 5,
+    repeats = 5, 
+    verboseIter = TRUE
+  )
+)
+
+```
+Calculating RMSE
+
+```{r, echo = TRUE}
+model
+# Show the coefficients
+mod <- lm(Survival~Organ, z)
+coef(mod)
+# Show the full output
+summary(mod)
+# View summary of model
+summary(mod)
+# Compute the mean of the residuals
+mean(residuals(mod))
+# Compute RMSE
+sqrt(sum(residuals(mod)^2) / df.residual(mod))
+
+  
+```
+
+```{r plotting result, echo = TRUE}
+z$pred <- predict(model)
+# Make a plot to compare predictions to actual (prediction on x axis). 
+ggplot(z, aes(x = pred, y = Survival)) + 
+  geom_point() +
+  geom_abline(color = "blue")
+
+  
+```
+
+3.Average+Organ effect system
+mu <- mean(train$Survival)
+survival_avgs <- train %>%
+  group_by(Organ) %>%
+  summarize(b_i = mean(Survival - mu))
+# predicted ratings
+predicted_ratings_bi <- mu + test %>%
+  left_join(survival_avgs, by = "Organ") %>%
+  .$b_i
+rmse_1 <- RMSE(test$Survival, predicted_ratings_bi)
+rmse_1
+
+#Conclusion.This IDV project was examined  to observe data, check hypothesis and to predict survival time. The model evaluation performance through the RMSE ( root mean squared error) showed that the Linear regression models are useful to predict survival time on the test set. 
+
+
+# Appendix - Enviroment
+
+```{r}
+print("Operating System:")
+version
+
+
+
