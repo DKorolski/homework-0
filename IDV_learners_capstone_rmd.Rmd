@@ -9,7 +9,7 @@ output: pdf_document
 
 # Overview  
 
-  IDV Learners Capstone Project of the HarvardX: PH125.9x Data Science: Capstone course. Current task is to create recommendation system using a choosen dataset. Also, current task is to train a machine learning algorithm using the inputs in one subset to predict survival time in the test set. 
+  IDV Learners Capstone Project of the HarvardX: PH125.9x Data Science: Capstone course. Current task is to create prediction system using a choosen dataset. Also, current task is to train a machine learning algorithm using the inputs in one subset to predict survival time in the test set. 
 
 
 # Introduction
@@ -17,7 +17,7 @@ output: pdf_document
   For this project we will focus on create a hypothesis testing and training prediction model system using  Cameron and Pauling investigation  dataset "Intravenous vitamin C in the supportive care of cancer patients: a review and rational approach", https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5927785/. Literature demonstrates that cancer patients experience vitamin C deficiency correlated with reduced oral intake, inflammation, infection, disease processes, and treatments such as radiation, chemotherapy, and surgery. Reaserch of the statistical significance of a possible difference in the effect of the Ascorbate treatment, as well as training the machine learning algorithm on the basis of the data obtained are the goals of this project.
 
 
-##Executive summary
+# Executive summary
 
 
   The evaluation of algorithm performance is the Root Mean Square Error. RMSE is a frequently used measure of the differences between values (sample or population values) predicted by a model or an estimator and the values observed. The RMSE represents the square root of the second sample moment of the differences between predicted values and observed values or the quadratic mean of these differences. These deviations are called residuals when the calculations are performed over the data sample that was used for estimation and are called errors (or prediction errors) when computed out-of-sample. The RMSE serves to aggregate the magnitudes of the errors in predictions for various times into a single measure of predictive power. RMSE is a measure of accuracy, to compare forecasting errors of different models for a particular dataset and not between datasets, as it is scale-dependent.
@@ -36,8 +36,9 @@ sqrt(mean((predicted_ratings - true_ratings)^2))
 
 ## Dataset
 
-The cancer_1 dataset is uploaded at GitHub repository
+Data open source: http://tunedit.org/repo/DASL/CancerSurvival.arff
 
+The cancer_1 dataset is uploaded at GitHub repository
 https://github.com/DKorolski/homework-0/raw/8d656ba0abb62a8a48e611f8d5a2cebe4250bc97/cancer_1.xlsx
 
 
@@ -50,9 +51,23 @@ if(!require(data.table)) install.packages ("data.table", repos = "http://cran.us
 if(!require(car)) install.packages("car", repos = "http://cran.us.r-project.org")
 if(!require(ggplot2)) install.packages("ggplot2", repos = "http://cran.us.r-project.org")
 if(!require(readxl)) install.packages("readxl", repos = "http://cran.us.r-project.org") 
-#Loading dataset
-z <- read_excel (path = "cancer_1.xlsx", sheet = "cancer")
 
+#Loading dataset using webscrape method
+library(rvest)
+url <- "http://tunedit.org/repo/DASL/CancerSurvival.arff"
+web <- read_html(url)
+t <- html_nodes(web,"textarea")
+desc <- html_text(t)
+desc1 <- str_sub(desc,-852,-4)
+desc5 <- gsub(",","\t",desc1)
+desc6 <- str_replace_all(desc5,"'","")
+desc7 <- read_tsv(desc6,col_names = c("Survival", "Organ"))
+z <- data.frame(desc7)
+str(z)
+
+# alternative way of loading dataset from file 
+#(github repository link is provided) in case the url is broken 
+#z <- read_excel (path = 'cancer_1.xlsx', sheet = 'cancer')
 ```
 
 
@@ -205,7 +220,10 @@ length(p)
 nrow(test)
 length(error)
 # Calculate RMSE
-sqrt(mean(error^2))
+
+rmse1<-sqrt(mean(error^2))
+rmse_result <- data_frame(method = "Linear regression model 1", RMSE = rmse1)
+rmse_result %>% knitr::kable()
 
   
 ```
@@ -226,7 +244,10 @@ model <- train(
     verboseIter = TRUE
   )
 )
-model
+rmse2<-model$results$RMSE
+rmse_result <- data_frame(method = "Linear regression+ 10 fold cross validation", RMSE = rmse2)
+rmse_result %>% knitr::kable()
+
 # Fit lm model using 5 x 5-fold CV: model
 model <- train(
   Survival~Organ, 
@@ -239,6 +260,9 @@ model <- train(
     verboseIter = TRUE
   )
 )
+rmse3<-model$results$RMSE
+rmse_result <- data_frame(method = "Linear regression+ 5x5 fold repeated cross validation", RMSE = rmse3)
+rmse_result %>% knitr::kable()
 
 ```
 Calculating RMSE
@@ -271,6 +295,7 @@ ggplot(z, aes(x = pred, y = Survival)) +
 ```
 
 3.Average+Organ effect system
+```{r, echo = TRUE}
 mu <- mean(train$Survival)
 survival_avgs <- train %>%
   group_by(Organ) %>%
@@ -279,13 +304,32 @@ survival_avgs <- train %>%
 predicted_ratings_bi <- mu + test %>%
   left_join(survival_avgs, by = "Organ") %>%
   .$b_i
-rmse_1 <- RMSE(test$Survival, predicted_ratings_bi)
-rmse_1
 
-#Conclusion.This IDV project was examined  to observe data, check hypothesis and to predict survival time. The model evaluation performance through the RMSE ( root mean squared error) showed that the Linear regression models are useful to predict survival time on the test set. 
+rmse_4 <- RMSE(test$Survival, predicted_ratings_bi)
+rmse_result <- data_frame(method = "Linear regression+ regular model", RMSE = rmse_4)
+rmse_result %>% knitr::kable()
+```
+
+#Results
+
+```{r echo=FALSE}
+rmse_result <- data_frame(method = "Linear regression model 1", RMSE = rmse1)
+
+rmse_results <- bind_rows(rmse_result,
+                          data_frame(method = "Linear regression+ 10 fold cross validation", RMSE = rmse2))
+rmse_results <- bind_rows(rmse_results,
+                           data_frame(method = "Linear regression+ 5x5 fold repeated cross validation", RMSE = rmse3))
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(method = "Linear regression+ regular model", RMSE = rmse_4))
+rmse_results %>% knitr::kable()
+```
 
 
-# Appendix - Enviroment
+
+
+
+#Conclusion.This IDV project was examined  to observe data, check hypothesis and to predict survival time. The model evaluation performance through the RMSE ( root mean squared error) showed that the Linear regression models are useful to predict survival time on the test set.  
+#Appendix - Enviroment
 
 ```{r}
 print("Operating System:")
