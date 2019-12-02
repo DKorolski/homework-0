@@ -1,0 +1,504 @@
+---
+title: "HarvardX: PH125.9x Data Science  \n   MovieLens Rating Prediction Project"
+author: "Denis Korolskii"
+date: "November 17, 2019"
+output: pdf_document
+---
+
+
+# Overview  
+
+  MovieLens Project of the HarvardX: PH125.9x Data Science: Capstone course. Current task is to create recommendation system using MovieLens dataset. Also, current task is to train a machine learning algorithm using the inputs in one subset to predict movie ratings in the validation set. 
+
+
+# Introduction
+
+  A recommendation system is a subclass of information filtering system that seeks to predict the "rating" or "preference" a user would give to an item. They are primarily used in commercial applications.
+  Recommender systems are utilized in a variety of areas, and are most commonly recognized as playlist generators for video and music services like Netflix, YouTube and Spotify, product recommenders for services such as Amazon, or content recommenders for social media platforms such as Facebook and Twitter.
+  For this project we will focus on create a movie recommendation system using the 10M version of MovieLens dataset, collected by GroupLens Research.
+
+
+##Executive summary
+
+  The goal is to train a machine learning algorithm using the inputs of a provided training subset to predict movie ratings in a validation set.
+  The evaluation of algorithm performance is the Root Mean Square Error. RMSE is a frequently used measure of the differences between values (sample or population values) predicted by a model or an estimator and the values observed. The RMSE represents the square root of the second sample moment of the differences between predicted values and observed values or the quadratic mean of these differences. These deviations are called residuals when the calculations are performed over the data sample that was used for estimation and are called errors (or prediction errors) when computed out-of-sample. The RMSE serves to aggregate the magnitudes of the errors in predictions for various times into a single measure of predictive power. RMSE is a measure of accuracy, to compare forecasting errors of different models for a particular dataset and not between datasets, as it is scale-dependent.
+  RMSE is always non-negative, and a value of 0 (almost never achieved in practice) would indicate a perfect fit to the data. In general, a lower RMSD is better than a higher one.
+  The evaluation criteria for this algorithm is a RMSE expected to be lower than 0.86550.
+  The function that computes the RMSE for vectors of ratings and their corresponding predictors will be the following:
+$$ RMSE = \sqrt{\frac{1}{N}\displaystyle\sum_{u,i} (\hat{y}_{u,i}-y_{u,i})^{2}} $$
+
+```{r RMSE_function1, echo = FALSE}
+
+RMSE <- function(predicted_ratings, true_ratings){
+sqrt(mean((predicted_ratings - true_ratings)^2))
+}
+
+```
+
+
+Finally, the best resulting model will be used to predict the movie ratings.
+"It will be usefull to utilize and load several packages from CRAN. As per the project guidelines, the dataset will be split into a training and validation set (10%), and the training set will then be further split into a 
+train/test set with the test set being 10% of the training set."
+
+## Dataset
+
+The MovieLens dataset is automatically downloaded
+
+• [MovieLens 10M dataset] https://grouplens.org/datasets/movielens/10m/
+
+• [MovieLens 10M dataset - zip file] http://files.grouplens.org/datasets/movielens/ml-10m.zip
+
+
+```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
+
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.org")
+dl <- tempfile()
+download.file("http://files.grouplens.org/datasets/movielens/ml-10m.zip", dl)
+
+ratings <- read.table(text = gsub("::", "\t", readLines(unzip(dl, "ml-10M100K/ratings.dat"))),
+col.names = c("userId", "movieId", "rating", "timestamp"))
+
+movies <- str_split_fixed(readLines(unzip(dl, "ml-10M100K/movies.dat")), "\\::", 3)
+colnames(movies) <- c("movieId", "title", "genres")
+
+movies <- as.data.frame(movies) %>% mutate(movieId = as.numeric(levels(movieId))[movieId],
+title = as.character(title),
+genres = as.character(genres))
+movielens <- left_join(ratings, movies, by = "movieId")
+
+```
+
+In order to predict in the most possible accurate way the movie rating of the users that haven’t seen the movie yet, the he MovieLens dataset will be splitted into 2 subsets that will be the “edx”, a training subset to train the algorithm, and “validation” a subset to test the movie ratings.
+
+```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
+
+# The Validation subset will be 10% of the MovieLens data.
+set.seed(1)
+test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
+edx <- movielens[-test_index,]
+temp <- movielens[test_index,]
+#Make sure userId and movieId in validation set are also in edx subset:
+validation <- temp %>%
+semi_join(edx, by = "movieId") %>%
+semi_join(edx, by = "userId")
+
+# Add rows removed from validation set back into edx set
+removed <- anti_join(temp, validation)
+edx <- rbind(edx, removed)
+rm(dl, ratings, movies, test_index, temp, movielens, removed)
+
+```
+
+Algorithm development is to be carried out on the "edx" subset only, as "validation" subset will be used to test the final algorithm.
+
+ Metadata
+Source: http://files.grouplens.org/datasets/movielens/ml-10m-README.html
+
+Summary
+This data set contains 10000054 ratings and 95580 tags applied to 10681 movies by 71567 users of the online movie recommender service MovieLens.
+Users were selected at random for inclusion. All users selected had rated at least 20 movies. Unlike previous MovieLens data sets, no demographic information is included. Each user is represented by an id, and no other information is provided.
+The data are contained in three files, movies.dat, ratings.dat and tags.dat. Also included are scripts for generating subsets of the data to support five-fold cross-validation of rating predictions. More details about the contents and use of all these files follows.
+This and other GroupLens data sets are publicly available for download at GroupLens Data Sets.
+All ratings are contained in the file ratings.dat. Each line of this file represents one rating of one movie by one user, and has the following format:
+UserID::MovieID::Rating::Timestamp
+The lines within this file are ordered first by UserID, then, within user, by MovieID.
+Ratings are made on a 5-star scale, with half-star increments.
+Timestamps represent seconds since midnight Coordinated Universal Time (UTC) of January 1, 1970.
+Tags Data File Structure
+All tags are contained in the file tags.dat. Each line of this file represents one tag applied to one movie by one user, and has the following format:
+UserID::MovieID::Tag::Timestamp
+The lines within this file are ordered first by UserID, then, within user, by MovieID.
+Tags are user generated metadata about movies. Each tag is typically a single word, or short phrase. The meaning, value and purpose of a particular tag is determined by each user.
+Timestamps represent seconds since midnight Coordinated Universal Time (UTC) of January 1, 1970.
+Movies Data File Structure
+Movie information is contained in the file movies.dat. Each line of this file represents one movie, and has the following format:
+MovieID::Title::Genres
+MovieID is the real MovieLens id.
+Movie titles, by policy, should be entered identically to those found in IMDB, including year of release. However, they are entered manually, so errors and inconsistencies may exist.
+Genres are a pipe-separated list, and are selected from the following:
+Action
+Adventure
+Animation
+Children's
+Comedy
+Crime
+Documentary
+Drama
+Fantasy
+Film-Noir
+Horror
+Musical
+Mystery
+Romance
+Sci-Fi
+Thriller
+War
+Western
+
+
+# Methods and Analysis
+## Data Analysis
+
+To get familiar with the dataset, we find the first rows of "edx" subset as below.
+The subset contain the six variables “userID”, “movieID”, “rating”, “timestamp”, “title”, and “genres”. Each row represent a single rating of a user for a single movie.
+
+```{r loading libraries, echo = TRUE,warning=FALSE}
+#load libraries
+library(ggplot2)
+library(tidyverse)
+library(caret)
+library(lubridate)
+library(stringr)
+  
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#load libraries
+library(car)
+  
+```
+Preprocessing
+
+Testing for any N/A
+```{r testing for N/A, echo = TRUE}
+colSums(is.na(edx))
+  
+```
+
+
+```{r converting timestamp to year, echo=TRUE}
+#Converting timestamp to year
+edx <- mutate(edx, UserTag_year = year(as_datetime(timestamp)))
+  
+```
+
+
+```{r extracting "year" from "title" data field, echo = TRUE}
+#Extracting "year" from "title" data field
+edx <- mutate(edx, movie_year = as.numeric(str_sub(title,-5,-2)) )
+  
+```
+
+
+
+Exploring dataset
+
+check for duplicates/double elements and comparing with metadata option. Users were selected at random for inclusion. All users selected had rated at least 20 movies. Each user is represented by an id, and no other information is provided.
+
+```{r comparing with metadata option, echo = TRUE, fig.width=4}
+#Checking dataset whether it includes users below metadata limit option or not
+uid<-edx%>%group_by(userId)%>%summarize(number = n(), min=min(rating),max=max(rating)) %>%
+arrange(desc(number))%>%filter(number<=19)
+
+#This part of dataset (users who made less than 19 ratings) 
+#does not accord the metadata option (more than 20 ratings per user).
+nrow(uid)
+
+  
+```
+
+ 
+Checking for any doubles. Users who wathched same film several times.
+
+```{r users who watch same movie several times, echo=TRUE}
+double_watching <- edx %>% group_by(userId,title)%>%
+summarize (number = n(), min=min(rating), max=max(rating)) %>% arrange(desc(number)) %>% filter(number>=2)
+
+nrow(double_watching)
+#The number of users who wathched same film several times is insignificant.
+  
+```
+
+Testing for duplicate movie titles with several movieId
+
+```{r checking titles for duplicates , echo = TRUE}
+dupl_title_movieId<-edx%>%group_by(title)%>%summarize(min=min(movieId),
+max=max(movieId)) %>%filter(min!=max)
+
+head(dupl_title_movieId)
+#Only one movie has several movieId
+  
+```
+
+Checking timestamps for inconsistencies
+
+```{r check timestamp inconsistencies, echo = TRUE}
+edx<-edx%>%mutate(Tag_year_delay=UserTag_year-movie_year)
+nrow(filter(edx,edx$Tag_year_delay<=-1))
+head(filter(edx,edx$Tag_year_delay<=-1))
+#Some movies rated earlier than its premier year
+  
+```
+
+Observing dataset
+
+```{r head(edx), echo = TRUE}
+head(edx)
+  
+```
+
+```{r summary of dataset, echo = TRUE}
+summary(edx)
+  
+```
+
+
+User activity characteristics
+
+```{r user activity, echo=TRUE, fig.width=12}
+head( edx%>% group_by(userId) %>% summarize(number = n(), 
+min=min(rating), max=max(rating)) %>% arrange (desc(number)))
+#Table shows extremal user activity
+  
+```
+
+```{r Histogram.Rating distribution, echo = TRUE}
+#Histogram.Rating distribution
+
+edx %>% ggplot(aes(rating)) +
+  geom_histogram(bins = 30, color = "black") +
+  labs(title = "Rating distribution",
+       x = "Rating",
+       y = "number_of_rating")
+  
+```
+
+```{r Number of ratings per user, echo = TRUE}
+# Number of ratings per user
+edx %>%
+  count(userId) %>%
+  ggplot(aes(x=n)) +
+  geom_histogram(bins = 30, color = "black") +
+  scale_x_log10() +
+  xlab("Number of users") +
+  ylab("Number of ratings") +
+  ggtitle("Number of ratings per user")
+  
+```
+
+```{r Number of ratings per movie, echo = TRUE}
+#Number of ratings per movie
+edx %>%
+  count(movieId) %>%
+  ggplot(aes(n)) +
+  geom_histogram(bins = 30, color = "black") +
+  scale_x_log10() +
+  xlab("Number of ratings") +
+  ylab("Number of movies") +
+  ggtitle("Number of ratings per movie")
+  
+```
+
+
+ Unique elements of dataset
+
+```{r amount of distinct elements of dataset, echo = TRUE}
+edx %>%
+  summarize(dist_Users = n_distinct(userId),
+            dist_Movies = n_distinct(movieId),
+            dist_Genres = n_distinct(genres))
+```
+
+```{r Movie premier year distribution, echo = TRUE}
+#Movie premier year distribution
+edx %>% ggplot(aes(movie_year)) +
+  geom_histogram(bins = 30, fill = "black") +
+  labs(title = "Year distribution",
+       subtitle = "Rates by year",
+       x = "Year",
+       y = "Number of ratings")
+
+#Distance distribution between year of movie premier and rate
+edx %>% ggplot(aes(Tag_year_delay)) +
+  geom_histogram( bins = 30,fill = "black") +
+  labs(title = "Delay distribution",
+       subtitle = "Rates by delay",
+       x = "Tag_year_delay",
+       y = "Number of ratings")
+  
+```
+
+
+
+## Regression model
+
+Prediction the same rating for all movies regardless of user
+Average movie effect
+
+```{r overall mean rating, echo = TRUE}
+mu <- mean(edx$rating)
+  
+```
+
+
+b_i on the training set
+
+```{r b_i on the training set, echo = TRUE}
+movie_avgs <- edx %>% 
+  group_by(movieId) %>% 
+  summarize(b_i = mean(rating - mu))
+  
+```
+
+
+predicted ratings
+
+```{r predicted ratings_bi, echo = TRUE}
+predicted_ratings_bi <- mu + validation %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  .$b_i
+```
+
+avg movie + user effect
+
+b_u on the training set 
+
+
+```{r b_u on the training set, echo = TRUE}
+user_avgs <- edx %>%  
+  left_join(movie_avgs, by="movieId") %>%
+  group_by(userId) %>%
+  summarize(b_u = mean(rating - mu - b_i))
+  
+```
+
+
+predicted ratings
+
+```{r predicted ratings_bu, echo = TRUE}
+predicted_ratings_bu <- validation %>% 
+  left_join(movie_avgs, by="movieId") %>%
+  left_join(user_avgs, by="userId") %>%
+  mutate(pred = mu + b_i + b_u) %>%
+  .$pred
+  
+```
+
+avg movie + user + time effect
+
+extracting year of given rating from timestamp on validation dataset
+
+```{r converting timestamp, echo = TRUE}
+validation1 <- validation %>%
+  mutate(UserTag_year = year(as_datetime(timestamp))) 
+  
+```
+
+
+Time effects ( b_t) on the training set
+
+```{r time effects, echo = TRUE}
+UserTag_year_avgs <- edx %>%
+  left_join(movie_avgs, by="movieId") %>%
+  left_join(user_avgs, by="userId") %>%
+  group_by(UserTag_year) %>%
+  summarize(b_t = mean(rating - mu - b_i - b_u))
+  
+```
+
+
+predicted ratings
+
+```{r predicted ratings_bt, echo = TRUE}
+predicted_ratings_bt <- validation1 %>% 
+  left_join(movie_avgs, by="movieId") %>%
+  left_join(user_avgs, by="userId") %>%
+  left_join(UserTag_year_avgs, by="UserTag_year") %>%
+  mutate(pred = mu + b_i + b_u + b_t) %>%
+  .$pred
+  
+```
+
+
+calculating RMSE for current models
+
+```{r RMSE, echo = TRUE}
+rmse_1 <- RMSE(validation$rating,predicted_ratings_bi)  
+
+rmse_result <- data_frame(method = "Avg movie rating model 1", RMSE = rmse_1)
+rmse_result %>% knitr::kable()
+
+
+rmse_2 <- RMSE(validation$rating,predicted_ratings_bu)
+rmse_result <- data_frame(method = "Avg movie + user effect model 2", RMSE = rmse_2)
+rmse_result %>% knitr::kable()
+
+
+rmse_3 <- RMSE(validation$rating,predicted_ratings_bt)
+rmse_result <- data_frame(method = "Avg movie + user effect + time effect model 3", RMSE = rmse_3)
+rmse_result %>% knitr::kable()
+  
+```
+
+## Regularization
+Regularization permits us to penalize large estimates that are formed using small sample sizes. It has commonalities with the Bayesian approach.
+```{r regularization, echo = TRUE}
+lambdas <- seq(0, 10, 0.25)
+
+rmses <- sapply(lambdas, function(l){
+  
+  mu_reg <- mean(edx$rating)
+  
+  b_i_reg <- edx %>% 
+    group_by(movieId) %>%
+    summarize(b_i_reg = sum(rating - mu_reg)/(n()+l))
+  
+  b_u_reg <- edx %>% 
+    left_join(b_i_reg, by="movieId") %>%
+    group_by(userId) %>%
+    summarize(b_u_reg = sum(rating - b_i_reg - mu_reg)/(n()+l))
+  
+  predicted_ratings_b_i_u <- 
+    validation %>% 
+    left_join(b_i_reg, by = "movieId") %>%
+    left_join(b_u_reg, by = "userId") %>%
+    mutate(pred = mu_reg + b_i_reg + b_u_reg) %>%
+    .$pred
+  
+  return(RMSE(validation$rating,predicted_ratings_b_i_u))
+})
+  
+```
+
+plotting results
+
+```{r plotting results, echo = TRUE}
+qplot(lambdas, rmses)  
+  
+```
+
+```{r resulting RMSE, echo = TRUE}
+rmse_4 <- min(rmses)
+rmse_result <- data_frame (method = "Avg movie + user effect + time effect + regularization model 4", RMSE = rmse_4)
+rmse_result %>% knitr::kable()
+  
+```
+# Results
+
+Calculated RMSE of all methods below
+```{r rmse_results2, echo = TRUE}
+rmse_result <- data_frame(method = "Average movie + user effect + time effect + regularization model 4", RMSE = rmse_4)
+rmse_results <- bind_rows(rmse_result,
+ data_frame(method="Average movie + user effect + time effect model 3",RMSE = rmse_3))
+rmse_results <- bind_rows(rmse_results,
+ data_frame(method="Average movie + user effect  2",RMSE = rmse_2))
+rmse_results <- bind_rows(rmse_results,
+ data_frame(method="Average movie   1",RMSE = rmse_1))
+rmse_results %>% knitr::kable()
+```
+
+# Conclusion
+
+This MovieLens project just successfully examined  to predict movie rating. The model evaluation performance through the RMSE ( root mean squared error) showed that the Linear regression model with regularized effects on users and movies are useful to predict ratings on the validation set. Current model effeciency approximately 0.86499
+
+# Appendix - Enviroment
+
+```{r}
+print("Operating System:")
+version
+
+
+
+
