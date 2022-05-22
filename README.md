@@ -1,2 +1,2 @@
-# homework-0
+# Movie score ML recomendation system
 My first GitHub repo
